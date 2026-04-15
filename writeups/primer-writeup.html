@@ -2,13 +2,20 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>Primer Writeup</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CrackMe Writeup #1</title>
 <link rel="stylesheet" href="../style.css">
 </head>
 
 <body>
 
-<h1>Primer Writeup - Reversing</h1>
+<h1>CrackMe Writeup #1 - Reversing</h1>
+
+<p>I am documenting my journey in reverse engineering through CTF challenges and crackmes.</p>
+
+<hr>
+
+<h2>Challenge Information</h2>
 
 <p><b>Challenge:</b> 
 <a href="https://crackmes.one/crackme/6943c5440992a052ab22240f" target="_blank">
@@ -16,18 +23,22 @@ CrackMe - Password Validation
 </a>
 </p>
 
-<p><b>Dificultad:</b> Fácil</p>
-<p><b>Categoría:</b> Reversing</p>
+<p><b>Difficulty:</b> Easy</p>
+<p><b>Category:</b> Reversing</p>
 
-<h2>Análisis inicial</h2>
+<hr>
 
-<p>Al ejecutar el programa, se observa que al introducir una contraseña incorrecta aparece el mensaje <b>"Password Trash"</b>. Esto sugiere que el programa valida la entrada del usuario contra un valor interno.</p>
+<h2>Initial Analysis</h2>
 
-<h2>Búsqueda de strings</h2>
+<p>When running the program, entering an incorrect password shows the message <b>"Password Trash"</b>. This suggests that the program validates user input against an internal value.</p>
 
-<p>Se utilizó Cheat Engine para buscar el string <b>"Password Trash"</b> en memoria. Se encontró una referencia estática (en verde), indicando que el string está almacenado en el binario.</p>
+<hr>
 
-<p>Siguiendo las referencias, se llegó al siguiente loop:</p>
+<h2>String Analysis</h2>
+
+<p>Cheat Engine was used to search for the string <b>"Password Trash"</b> in memory. A static reference (highlighted in green) was found, indicating that the string is stored in the binary.</p>
+
+<p>Following the references led to the following loop:</p>
 
 <pre>
 mov al, [ecx]
@@ -36,13 +47,17 @@ test al, al
 jne ...
 </pre>
 
-<p>Este loop recorre un string byte por byte hasta encontrar un <b>0</b>, por lo que no corresponde a la validación, sino a una rutina interna.</p>
+<p>This loop iterates through a string byte by byte until it finds a null terminator (0). This indicates that it is part of an internal routine and not the actual validation logic.</p>
 
-<h2>Identificación del flujo principal</h2>
+<hr>
 
-<p>Siguiendo el stacktrace se llegó a la función relevante dentro del binario "parol.exe+10CC".</p>
+<h2>Identifying the Main Flow</h2>
 
-<h2>Análisis de la validación</h2>
+<p>By following the stack trace, the relevant function inside the binary at <b>"parol.exe+10CC"</b> was reached.</p>
+
+<hr>
+
+<h2>Validation Logic Analysis</h2>
 
 <pre>
 call GetDlgItemTextA
@@ -54,25 +69,35 @@ or eax, eax
 jne fail
 </pre>
 
-<h3>Interpretación</h3>
+<h3>Interpretation</h3>
 
 <ul>
-<li><b>GetDlgItemTextA</b>: obtiene el input del usuario y lo guarda en memoria</li>
-<li><b>lea eax, [ebp-104]</b>: obtiene la dirección del buffer</li>
-<li><b>push "SuperPass"</b>: prepara la cadena de comparación</li>
-<li><b>lstrcmp</b>: compara ambas cadenas</li>
-<li><b>jne</b>: salta si son diferentes</li>
+<li><b>GetDlgItemTextA</b>: retrieves the user input and stores it in memory</li>
+<li><b>lea eax, [ebp-104]</b>: gets the address of the buffer</li>
+<li><b>push "SuperPass"</b>: prepares the comparison string</li>
+<li><b>lstrcmp</b>: compares both strings</li>
+<li><b>jne</b>: jumps if they are different</li>
 </ul>
 
-<h2>Conclusión</h2>
+<hr>
 
-<p>La contraseña correcta es:</p>
+<h2>Conclusion</h2>
+
+<p>The correct password is:</p>
 
 <pre>SuperPass</pre>
 
-<p>Al introducirla, el programa muestra el mensaje <b>"Password Good"</b>.</p>
+<p>When entered, the program displays the message <b>"Password Good"</b>.</p>
 
-<a href="../index.html">Volver</a>
+<hr>
+
+<h2>Notes</h2>
+
+<p>This challenge demonstrates a basic password validation mechanism using a direct string comparison. It is a good introduction to reversing simple binaries and understanding how user input is processed and validated.</p>
+
+<hr>
+
+<a href="../index.html">← Back to Portfolio</a>
 
 </body>
 </html>
