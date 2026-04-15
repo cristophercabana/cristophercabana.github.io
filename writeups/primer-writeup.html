@@ -8,13 +8,62 @@
 
 <body>
 
-<h1>Primer Writeup</h1>
+<h1>Primer Writeup - Reversing</h1>
 
-<p>Este es mi primer writeup de reversing.</p>
+<p>Este es mi primer writeup de reversing, correspondiente a un challenge de dificultad sencilla.</p>
 
-<h2>Análisis</h2>
+<h2>Análisis inicial</h2>
 
-<p>Aquí explico cómo resolví el challenge.</p>
+<p>Al ejecutar el programa, se observa que al introducir una contraseña incorrecta aparece el mensaje <b>"Password Trash"</b>. Esto sugiere que el programa valida la entrada del usuario contra un valor interno.</p>
+
+<h2>Búsqueda de strings</h2>
+
+<p>Se utilizó Cheat Engine para buscar el string <b>"Password Trash"</b> en memoria. Se encontró una referencia estática (en verde), indicando que el string está almacenado en el binario.</p>
+
+<p>Siguiendo las referencias, se llegó al siguiente loop:</p>
+
+<pre>
+mov al, [ecx]
+inc ecx
+test al, al
+jne ...
+</pre>
+
+<p>Este loop recorre un string byte por byte hasta encontrar un <b>0</b>, por lo que no corresponde a la validación, sino a una rutina interna.</p>
+
+<h2>Identificación del flujo principal</h2>
+
+<p>Siguiendo el stacktrace se llegó a la función relevante dentro del binario.</p>
+
+<h2>Análisis de la validación</h2>
+
+<pre>
+call GetDlgItemTextA
+push "SuperPass"
+lea eax, [ebp-104]
+push eax
+call lstrcmp
+or eax, eax
+jne fail
+</pre>
+
+<h3>Interpretación</h3>
+
+<ul>
+<li><b>GetDlgItemTextA</b>: obtiene el input del usuario y lo guarda en memoria</li>
+<li><b>lea eax, [ebp-104]</b>: obtiene la dirección del buffer</li>
+<li><b>push "SuperPass"</b>: prepara la cadena de comparación</li>
+<li><b>lstrcmp</b>: compara ambas cadenas</li>
+<li><b>jne</b>: salta si son diferentes</li>
+</ul>
+
+<h2>Conclusión</h2>
+
+<p>La contraseña correcta es:</p>
+
+<pre>SuperPass</pre>
+
+<p>Al introducirla, el programa muestra el mensaje <b>"Password Good"</b>.</p>
 
 <a href="../index.html">Volver</a>
 
