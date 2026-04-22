@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Minecraft Mod Reversing #1</title>
+<link rel="stylesheet" href="../style.css">
+</head>
+
+<body>
+
+<h1>Minecraft Mod Reversing #1 - Hook Conflict (Kamui Bug)</h1>
+
+<p>I am documenting practical reverse engineering cases, including real-world debugging scenarios in modded environments.</p>
+
+<hr>
+
+<h2>Scenario</h2>
+
+<p>A friend was running a Naruto-based Minecraft server using a modpack. One of the core abilities, <b>Kamui (intangibility)</b>, was not working correctly.</p>
+
+<p>The issue was:</p>
+
+<pre>
+After activating Kamui once, the player remained permanently intangible.
+</pre>
+
+<hr>
+
+<h2>Initial Analysis</h2>
+
+<p>The first step was to inspect the original mod:</p>
+
+<p><b>Target:</b> narutomod.jar</p>
+
+<p>Using Recaf, I analyzed the bytecode and logic related to the variable:</p>
+
+<pre>kamui_intangible</pre>
+
+<p>The behavior was correct:</p>
+
+<ul>
+<li>The value was properly toggled</li>
+<li>Cooldown logic was implemented</li>
+<li>No obvious bug was present</li>
+</ul>
+
+<p>This indicated that the issue was not in the original mod.</p>
+
+<hr>
+
+<h2>Expanding the Scope</h2>
+
+<p>Since this was a modpack, the issue could be caused by another mod.</p>
+
+<p>Further analysis revealed the presence of a <b>hooking system</b>.</p>
+
+<hr>
+
+<h2>Hook Identification</h2>
+
+<p>A second mod contained the following structure:</p>
+
+<pre>
+@Hook(returnCondition = ReturnCondition.ALWAYS, at = @At(point = InjectionPoint.HEAD))
+</pre>
+
+<p>This means:</p>
+
+<ul>
+<li>The hook executes at the beginning of the method</li>
+<li><b>ReturnCondition.ALWAYS</b> forces the original method to never execute</li>
+</ul>
+
+<p>Effectively, the original Kamui logic was being completely replaced.</p>
+
+<hr>
+
+<h2>Root Cause</h2>
+
+<p>The bug was not a flaw in the original implementation, but a <b>conflict between mods</b>.</p>
+
+<p>The hook modified the behavior of Kamui and failed to correctly reset the state, causing permanent intangibility.</p>
+
+<hr>
+
+<h2>Fix</h2>
+
+<p>The responsible code was located inside:</p>
+
+<pre>The_Shinobi_Way_V1.2.jar</pre>
+
+<p>Using Recaf, the hook was identified and removed by deleting the injection logic.</p>
+
+<p>This restored the original execution flow.</p>
+
+<hr>
+
+<h2>Result</h2>
+
+<ul>
+<li>Kamui intangibility works as intended</li>
+<li>State resets correctly after use</li>
+<li>No more permanent invulnerability</li>
+</ul>
+
+<hr>
+
+<h2>Key Takeaways</h2>
+
+<ul>
+<li>In modded environments, behavior can be overridden externally</li>
+<li>Hooks can completely replace original logic</li>
+<li>Reverse engineering is essential to trace real execution flow</li>
+</ul>
+
+<hr>
+
+<h2>Notes</h2>
+
+<p>This case demonstrates a real-world application of reverse engineering beyond CTF challenges, involving bytecode analysis, mod interaction, and runtime behavior modification.</p>
+
+<hr>
+
+<a href="../index.html">← Back to Portfolio</a>
+
+</body>
+</html>
