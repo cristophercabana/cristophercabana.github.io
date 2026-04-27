@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Minecraft Mod Reversing #1 - Entity Injection Case</title>
+<link rel="stylesheet" href="../style.css">
+</head>
+
+<body>
+
+<h1>Minecraft Mod Reversing #1 - Entity Injection & Bytecode Manipulation (Naruto Mod Expansion)</h1>
+
+<p>This document presents a reverse engineering case study performed on a modded Minecraft environment (Forge 1.12), focusing on modifying obfuscated game logic and extending hardcoded entity systems.</p>
+
+<hr>
+
+<h2>Target Analysis</h2>
+
+<p>The main class under analysis was:</p>
+
+<pre>net.narutomod.entity.EntityBijuManager</pre>
+
+<p>This class is responsible for:</p>
+
+<ul>
+<li>Tailed Beast registration system</li>
+<li>Cloak transformation logic</li>
+<li>Vessel binding management</li>
+<li>Entity mapping by tail index</li>
+</ul>
+
+<hr>
+
+<h2>Hardcoded Constraints Identified</h2>
+
+<h3>Entity Registration Limit</h3>
+
+<pre>
+if (tailnum > 0 && tailnum <= 10) {
+    mapByClass.put(clazz, this);
+    mapByTailnum.put(tailnum, this);
+}
+</pre>
+
+<h3>Iteration Bounds</h3>
+
+<pre>
+for (int j = 1; j <= 9; ++j)
+</pre>
+
+<h3>Clamp Logic</h3>
+
+<pre>
+return Math.max(1, Math.min(9, v));
+</pre>
+
+<p>These constraints indicate a hard limit of 9 tailed beasts in most gameplay systems.</p>
+
+<hr>
+
+<h2>Bytecode Analysis (ASM View)</h2>
+
+<p>Original bounded loop logic:</p>
+
+<pre>
+ICONST_1
+BIPUSH 9
+IF_ICMPGT end
+</pre>
+
+<p>Modified logic after patch:</p>
+
+<pre>
+ICONST_1
+BIPUSH 10
+IF_ICMPGT end
+</pre>
+
+<p>This change extends internal iteration and registry limits.</p>
+
+<hr>
+
+<h2>Cloak System Constraint</h2>
+
+<pre>
+if (this.tails < 10)
+</pre>
+
+<p>This condition controls multiple systems:</p>
+
+<ul>
+<li>Cloak activation</li>
+<li>Transformation state</li>
+<li>Entity binding logic</li>
+</ul>
+
+<hr>
+
+<h2>Vessel Binding Logic</h2>
+
+<pre>
+if (this.tails < 11) {
+    EntityGedoStatue.setBijuSealed(this.tails - 1, EntityGedoStatue.ENTITY_UUID.equals(uuid));
+}
+</pre>
+
+<p>This confirms internal indexing uses an offset-based system for sealing logic.</p>
+
+<hr>
+
+<h2>Entity Injection Strategy</h2>
+
+<ul>
+<li>Duplicated original Nine-Tails entity as base template</li>
+<li>Reused renderer pipeline to avoid missing subclass rendering issues</li>
+<li>Adjusted registry mapping inside EntityBijuManager</li>
+<li>Bypassed hardcoded tail limitations</li>
+</ul>
+
+<hr>
+
+<h2>Result</h2>
+
+<ul>
+<li>New entity successfully injected into the system</li>
+<li>Hardcoded limits bypassed via bytecode modification</li>
+<li>Rendering pipeline reused from original entity</li>
+<li>No runtime crashes during spawn or cloak activation</li>
+</ul>
+
+<hr>
+
+<h2>Key Takeaways</h2>
+
+<ul>
+<li>Modded Minecraft systems often rely on hardcoded registry bounds</li>
+<li>Entity behavior is tightly coupled with tail-index logic</li>
+<li>Bytecode modification can extend functionality without source recompilation</li>
+<li>Renderer reuse is critical when duplicating obfuscated entities</li>
+</ul>
+
+<hr>
+
+<h2>Conclusion</h2>
+
+<p>This case demonstrates how reverse engineering can be applied to real modded environments to analyze and extend gameplay systems through bytecode-level modifications.</p>
+
+<hr>
+
+<a href="../index.html">← Back to Portfolio</a>
+
+</body>
+</html>
